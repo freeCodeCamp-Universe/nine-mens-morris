@@ -619,7 +619,6 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: var(--space-4) var(--space-5);
-  border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
 }
 
@@ -663,15 +662,15 @@ body {
 
 .modal-footer {
   display: flex;
+  justify-content: flex-end;
   gap: var(--space-3);
   padding: var(--space-4) var(--space-5);
-  border-top: 1px solid var(--color-border);
   flex-shrink: 0;
 }
 
 .modal-footer .btn-primary,
 .modal-footer .btn-secondary {
-  flex: 1;
+  width: auto;
 }
 
 /* ── Responsive ── */

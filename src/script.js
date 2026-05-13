@@ -201,6 +201,16 @@ function switchPlayer(state) {
   if (!state.gameOver) checkDraw(state);
 }
 
+function getLiveLines(board, color) {
+  const opp = opponent(color);
+  let count = 0;
+  for (const [a, b, c] of MILLS) {
+    const cells = [board[a], board[b], board[c]];
+    if (cells.some(p => p === color) && !cells.some(p => p === opp)) count++;
+  }
+  return count;
+}
+
 function getAlmostMills(board, color) {
   let count = 0;
   for (const [a, b, c] of MILLS) {
@@ -222,21 +232,33 @@ function evaluateBoard(state, computerColor) {
   const opp = opponent(computerColor);
   const board = state.board;
 
+  const isPlacement = state.phase === 'placement';
+  const ownAlmostWeight = isPlacement ? 6 : 22;
+  const oppAlmostWeight = isPlacement ? 20 : 22;
+
   let score = 0;
   score += getMills(board, computerColor).length * 200;
   score -= getMills(board, opp).length * 200;
   score += state.piecesOnBoard[computerColor] * 10;
   score -= state.piecesOnBoard[opp] * 10;
-  score += getAlmostMills(board, computerColor) * 18;
-  score -= getAlmostMills(board, opp) * 18;
+  score += getAlmostMills(board, computerColor) * ownAlmostWeight;
+  score -= getAlmostMills(board, opp) * oppAlmostWeight;
   score += getMobility(state, computerColor);
   score -= getMobility(state, opp);
 
-  for (let i = 0; i < 24; i++) {
-    if (!STRATEGIC_NODES.has(i)) continue;
-    if (board[i] === computerColor) score += 4;
-    else if (board[i] === opp) score -= 4;
+  for (const [i, value] of NODE_VALUE) {
+    if (board[i] === computerColor) score += value;
+    else if (board[i] === opp) score -= value;
   }
+
+  if (isPlacement) {
+    score += getLiveLines(board, computerColor) * 4;
+    score -= getLiveLines(board, opp) * 4;
+  }
+
+  const key = serializeBoard(state);
+  const repetitions = state.boardHistory.filter(k => k === key).length;
+  if (repetitions > 0) score -= repetitions * 25;
 
   return score;
 }
@@ -275,12 +297,19 @@ function applyAction(state, action) {
 }
 
 function orderMoves(state, moves, computerColor) {
+  const opp = opponent(computerColor);
   return moves.slice().sort((a, b) => {
     const scoreMove = (m) => {
       if (m.type === 'remove') return 10;
       const s = cloneState(state);
       applyAction(s, m);
-      if (getMills(s.board, computerColor).length > getMills(state.board, computerColor).length) return 5;
+      if (getMills(s.board, computerColor).length > getMills(state.board, computerColor).length) return 8;
+      const node = m.type === 'place' ? m.node : m.to;
+      for (const mill of MILLS) {
+        if (!mill.includes(node)) continue;
+        const cells = mill.map(i => state.board[i]);
+        if (cells.filter(p => p === opp).length === 2 && cells.filter(p => p === null).length === 1) return 6;
+      }
       return 0;
     };
     return scoreMove(b) - scoreMove(a);
@@ -322,18 +351,47 @@ function minimax(state, depth, alpha, beta, maximizing, computerColor) {
   }
 }
 
-const STRATEGIC_NODES = new Set([1, 3, 4, 6, 9, 11, 12, 14]);
+const NODE_VALUE = new Map([
+  [9, 12], [11, 12], [12, 12], [14, 12],
+  [1, 8],  [3, 8],  [4, 8],  [6, 8],
+  [17, 8], [19, 8], [20, 8], [22, 8],
+  [0, -2], [2, -2], [5, -2], [7, -2],
+  [8, -2], [10, -2],[13, -2],[15, -2],
+  [16, -2],[18, -2],[21, -2],[23, -2],
+]);
 
 function getBestMove(state) {
   const computerColor = opponent(state.playerColor);
-  const depth = 3;
+  const opp = opponent(computerColor);
+  const depth = state.phase === 'placement' ? 3 : 4;
   const moves = getValidMoves(state);
   if (moves.length === 0) return null;
+
+  // Greedy: form own mill immediately
+  const millsBefore = getMills(state.board, computerColor).length;
+  for (const move of moves) {
+    const next = cloneState(state);
+    applyAction(next, move);
+    if (getMills(next.board, computerColor).length > millsBefore) return move;
+  }
+
+  // Greedy: block opponent mill
+  for (const [a, b, c] of MILLS) {
+    const cells = [state.board[a], state.board[b], state.board[c]];
+    if (cells.filter(p => p === opp).length === 2 && cells.filter(p => p === null).length === 1) {
+      const blockNode = [a, b, c][cells.indexOf(null)];
+      const blockMove = moves.find(m =>
+        (m.type === 'place' && m.node === blockNode) ||
+        (m.type === 'move' && m.to === blockNode)
+      );
+      if (blockMove) return blockMove;
+    }
+  }
 
   let bestScore = -Infinity;
   let bestMove = moves[0];
 
-  for (const move of moves) {
+  for (const move of orderMoves(state, moves, computerColor)) {
     const next = cloneState(state);
     applyAction(next, move);
     let score = minimax(next, depth - 1, -Infinity, Infinity, next.currentPlayer === computerColor, computerColor);
@@ -357,9 +415,8 @@ function getBestRemoval(state) {
 
   for (const node of removable) {
     const next = cloneState(state);
-    next.board[node] = null;
-    next.piecesOnBoard[opp]--;
-    const score = evaluateBoard(next, computerColor);
+    applyRemoval(next, node);
+    const score = minimax(next, 3, -Infinity, Infinity, next.currentPlayer === computerColor, computerColor);
     if (score > bestScore) {
       bestScore = score;
       bestNode = node;
@@ -761,18 +818,18 @@ function renderHelpModal() {
   </div>`;
 }
 
-function renderConfirmModal(message) {
+function renderConfirmModal() {
   return `<div class="modal-backdrop" id="confirm-modal" role="dialog" aria-modal="true" aria-label="Confirm action">
     <div class="modal-panel modal-panel-sm">
       <div class="modal-header">
-        <h2 class="modal-title">Are you sure?</h2>
+        <h2 class="modal-title">Quit Game</h2>
       </div>
       <div class="modal-body">
-        <p>${message}</p>
+        <p>Return to the main menu? You can resume your game from there.</p>
       </div>
       <div class="modal-footer">
-        <button class="btn-primary" id="btn-confirm-yes">Confirm</button>
         <button class="btn-secondary" id="btn-confirm-no">Cancel</button>
+        <button class="btn-primary" id="btn-confirm-yes">Confirm</button>
       </div>
     </div>
   </div>`;
@@ -806,8 +863,8 @@ function closeHelp() {
   if (modal) modal.remove();
 }
 
-function showConfirm(message, onConfirm) {
-  document.body.insertAdjacentHTML('beforeend', renderConfirmModal(message));
+function showConfirm(onConfirm) {
+  document.body.insertAdjacentHTML('beforeend', renderConfirmModal());
   const modal = document.getElementById('confirm-modal');
   trapFocus(modal);
   document.getElementById('btn-confirm-yes').addEventListener('click', () => {
@@ -816,6 +873,9 @@ function showConfirm(message, onConfirm) {
   });
   document.getElementById('btn-confirm-no').addEventListener('click', () => {
     modal.remove();
+  });
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.remove();
   });
 }
 
@@ -905,7 +965,7 @@ function bindPlayEvents() {
   if (btnClose) {
     btnClose.addEventListener('click', () => {
       if (!gameState.gameOver) {
-        showConfirm('Your progress will be saved.', () => {
+        showConfirm(() => {
           gameState = null;
           currentScreen = 'home';
           render();
