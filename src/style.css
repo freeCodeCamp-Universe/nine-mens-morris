@@ -15,12 +15,16 @@ body {
 
 .screen {
   width: 100%;
-  max-width: 520px;
+  max-width: 600px;
   min-width: 420px;
   background: var(--color-surface);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg), inset 0 0 0 1px var(--color-border);
   overflow: hidden;
+}
+
+.home-screen {
+  max-width: 450px;
 }
 
 /* ── Header ── */
@@ -326,6 +330,10 @@ body {
   color: var(--color-accent);
 }
 
+.light-palette .status-neutral {
+  color: var(--color-text-primary);
+}
+
 .status-win {
   color: var(--color-success);
 }
@@ -404,7 +412,7 @@ body {
 
 .board-wrap {
   width: 100%;
-  max-width: 480px;
+  max-width: 560px;
   position: relative;
 }
 

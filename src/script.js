@@ -574,7 +574,7 @@ function renderSVGBoard(state) {
       const selectedClass = isSelected ? ' piece-selected' : '';
       pieceCircle = `<circle cx="${cx}" cy="${cy}" r="14" class="piece ${colorClass}${millClass}${selectedClass}" />`;
     } else {
-      pieceCircle = `<circle cx="${cx}" cy="${cy}" r="6" class="node-dot" />`;
+      pieceCircle = `<circle cx="${cx}" cy="${cy}" r="9" class="node-dot" />`;
     }
 
     let targetRing = '';
@@ -597,11 +597,11 @@ function renderSVGBoard(state) {
   return `<svg class="board-svg" viewBox="0 0 480 480" role="img" aria-label="Nine Men's Morris board">
     <defs>
       <radialGradient id="grad-blue" cx="35%" cy="30%" r="65%">
-        <stop offset="0%" stop-color="var(--piece-highlight)" />
+        <stop offset="0%" stop-color="var(--piece-blue)" />
         <stop offset="100%" stop-color="var(--piece-blue)" />
       </radialGradient>
       <radialGradient id="grad-gold" cx="35%" cy="30%" r="65%">
-        <stop offset="0%" stop-color="var(--piece-highlight)" />
+        <stop offset="0%" stop-color="var(--piece-gold)" />
         <stop offset="100%" stop-color="var(--piece-gold)" />
       </radialGradient>
       <filter id="glow-blue" x="-50%" y="-50%" width="200%" height="200%">
@@ -640,9 +640,9 @@ function getStatusText(state) {
   const phaseLabel = state.phase === 'placement' ? 'Placement' : state.phase === 'flying' ? 'Flying' : 'Movement';
 
   if (state.mustRemove) {
-    return { text: `${cpName} turn — remove an opponent piece`, cls: 'status-neutral' };
+    return { text: `${cpName} turn - remove an opponent piece`, cls: 'status-neutral' };
   }
-  return { text: `${cpName} turn — ${phaseLabel}`, cls: 'status-neutral' };
+  return { text: `${cpName} turn - ${phaseLabel}`, cls: 'status-neutral' };
 }
 
 function renderPiecesInHand(state) {
@@ -721,30 +721,30 @@ function renderHelpModal() {
         <h3>Rules</h3>
         <ul>
           <li>Place all 9 pieces on the board, one per turn, on any empty intersection.</li>
-          <li>Each time you get 3 in a row (a "mill"), remove one of your opponent's pieces — but not one in a mill unless that is all they have left.</li>
+          <li>Each time you get 3 in a row (a "mill"), remove one of your opponent's pieces - but not one in a mill unless that is all they have left.</li>
           <li>Once all pieces are placed, slide pieces one step at a time along the lines.</li>
-          <li>If you are down to 3 pieces, you may "fly" — jump to any open spot.</li>
+          <li>If you are down to 3 pieces, you may "fly" - jump to any open spot.</li>
           <li>You lose if you are reduced to 2 pieces or have no legal moves.</li>
         </ul>
         <h3>Key Strategies</h3>
         <ul>
-          <li><strong>Build mills early</strong> — corners and midpoints of the outer ring participate in more mills.</li>
-          <li><strong>Double mill trap</strong> — set up two overlapping mills sharing one piece; slide it back and forth to remove a piece every turn.</li>
-          <li><strong>Block before you build</strong> — if your opponent has 2 in a mill, block the third spot immediately.</li>
-          <li><strong>Keep pieces mobile</strong> — spread pieces so you always have moves in the movement phase.</li>
-          <li><strong>Force no-move situations</strong> — winning by blocking is just as valid as reducing them to 2 pieces.</li>
+          <li><strong>Build mills early</strong> - corners and midpoints of the outer ring participate in more mills.</li>
+          <li><strong>Double mill trap</strong> - set up two overlapping mills sharing one piece; slide it back and forth to remove a piece every turn.</li>
+          <li><strong>Block before you build</strong> - if your opponent has 2 in a mill, block the third spot immediately.</li>
+          <li><strong>Keep pieces mobile</strong> - spread pieces so you always have moves in the movement phase.</li>
+          <li><strong>Force no-move situations</strong> - winning by blocking is just as valid as reducing them to 2 pieces.</li>
         </ul>
         <h3>Common Mistakes</h3>
         <ul>
           <li>Focusing only on placement without watching the opponent build a mill.</li>
           <li>Removing opponent pieces from far corners when you should target pieces in forming mills.</li>
-          <li>Leaving a double mill setup uncontested — once established it is almost unbeatable.</li>
+          <li>Leaving a double mill setup uncontested - once established it is almost unbeatable.</li>
           <li>Moving into the movement phase with poor piece distribution and getting blocked immediately.</li>
           <li>Forgetting that flying players cannot be blocked, only eliminated by piece count.</li>
         </ul>
         <h3>Tips for Beginners</h3>
         <ul>
-          <li>Focus on the outer and middle rings first — the inner square is cramped.</li>
+          <li>Focus on the outer and middle rings first - the inner square is cramped.</li>
           <li>Count how many mills each empty spot belongs to before you place.</li>
           <li>Removing from an active mill is allowed when that is all the opponent has.</li>
         </ul>
