@@ -1235,6 +1235,23 @@ function onNodeClick(nodeIndex) {
 
 (function init() {
   setTheme(getTheme());
+  const circles = NODE_POS.map(([cx, cy]) => `<circle cx="${cx}" cy="${cy}" r="8" fill="currentColor"/>`).join('');
+  const decoSVG = `<svg viewBox="-80 -80 640 640" aria-hidden="true" stroke="currentColor" stroke-width="3" fill="none">${
+    ['<rect x="40" y="40" width="400" height="400"/>',
+     '<rect x="120" y="120" width="240" height="240"/>',
+     '<rect x="200" y="200" width="80" height="80"/>',
+     '<line x1="240" y1="40" x2="240" y2="200"/>',
+     '<line x1="240" y1="280" x2="240" y2="440"/>',
+     '<line x1="40" y1="240" x2="200" y2="240"/>',
+     '<line x1="280" y1="240" x2="440" y2="240"/>',
+     circles].join('')
+  }</svg>`;
+  ['board-deco--tr', 'board-deco--bl'].forEach(cls => {
+    const el = document.createElement('div');
+    el.className = `board-deco ${cls}`;
+    el.innerHTML = decoSVG;
+    document.body.appendChild(el);
+  });
   render();
 })();
 
