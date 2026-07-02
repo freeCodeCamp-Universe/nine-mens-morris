@@ -556,7 +556,7 @@ function renderHeader(showClose = false, centerContent = '') {
     <div class="header-left">
       ${showClose ? `<button class="icon-btn" id="btn-close" aria-label="Close game">${ICONS.x}</button>` : '<div class="icon-btn-placeholder"></div>'}
     </div>
-    ${centerContent ? `<div class="header-center" aria-hidden="true">${centerContent}</div>` : ''}
+    ${centerContent ? `<div class="header-center">${centerContent}</div>` : ''}
     <div class="header-right">
       <button class="icon-btn" id="btn-help" aria-label="Help">${ICONS.question}</button>
       <button class="icon-btn" id="btn-theme" aria-label="${themeLabel}" aria-pressed="${theme === 'light'}">${ICONS[themeIcon]}</button>
@@ -685,7 +685,7 @@ function renderSVGBoard(state) {
     </g>`;
   }).join('');
 
-  return `<svg class="board-svg" viewBox="0 0 480 480" role="img" aria-label="Nine Men's Morris board">
+  return `<svg class="board-svg" viewBox="0 0 480 480" role="application" aria-label="Nine Men's Morris board">
     <defs>
       <radialGradient id="grad-blue" cx="35%" cy="30%" r="65%">
         <stop offset="0%" stop-color="var(--piece-blue)" />
@@ -1141,8 +1141,8 @@ function finalizeAfterAction() {
 
   if (gameState.gameOver) {
     setTimeout(() => {
-      const btn = document.getElementById('btn-play-again');
-      if (btn) btn.focus();
+      const overlay = document.querySelector('.game-over-overlay');
+      if (overlay) trapFocus(overlay);
     }, 350);
   }
 
