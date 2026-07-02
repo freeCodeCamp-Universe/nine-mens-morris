@@ -1002,6 +1002,7 @@ function bindPlayEvents() {
     btnClose.addEventListener('click', () => {
       if (!gameState.gameOver) {
         showConfirm(() => {
+          saveGame(gameState);
           gameState = null;
           currentScreen = 'home';
           render();
