@@ -510,6 +510,7 @@ body {
   cursor: pointer;
 }
 
+.board-node:focus,
 .board-node:focus-visible {
   outline: none;
 }
